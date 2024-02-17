@@ -21,7 +21,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
                 containerClassName="font-sans"
                 position="top-center"
                 reverseOrder={false}
-                toastOptions={{ duration: 3000 }}
+                toastOptions={{ duration: 10000 }}
               />
             </LoadingProvider>
           </Suspense>

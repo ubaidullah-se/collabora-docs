@@ -4,21 +4,14 @@ import { Folder } from "../components";
 import { SweetAlertResult } from "sweetalert2";
 import swalService from "../services/swal-service";
 import apiService from "../services/api-service";
+import toast from "react-hot-toast";
 
 export default function Dashboard() {
   const [projects, setProjects] = useState<Project[]>([]);
 
   const fetchAllProjects = async () => {
     const { data: projects } = await apiService.getAllProjects();
-    const { data: documents } = await apiService.getAllDocuments();
-
-    setProjects([
-      ...projects,
-      ...documents.map((item: DocumentItem) => ({
-        name: item.project?.name,
-        id: item.projectId,
-      })),
-    ]);
+    setProjects(projects);
   };
 
   useEffect(() => {
@@ -42,7 +35,12 @@ export default function Dashboard() {
         },
       })
       .then(({ value }: SweetAlertResult<any>) => {
-        apiService.createProject({ name: value });
+        apiService.createProject({ name: value }).then((response) => {
+          if (response.ok) {
+            toast.success("New project created.");
+            fetchAllProjects();
+          }
+        });
       });
   };
 
@@ -59,11 +57,23 @@ export default function Dashboard() {
       </div>
 
       <div className="flex flex-wrap gap-y-4">
-        {projects.map((item, index) => (
-          <Link key={index} to={`/project/${item.id}`} className="w-1/4">
-            <Folder name={item.name} />
-          </Link>
-        ))}
+        {projects.length > 0 ? (
+          projects.map((item, index) => (
+            <Link key={index} to={`/project/${item.id}`} className="w-1/4">
+              <Folder name={item.name} />
+            </Link>
+          ))
+        ) : (
+          <div className="w-full min-h-[300px] flex items-center justify-center">
+            No projects yet. Create a
+            <span
+              className="underline text-orange-400 pl-1.5 cursor-pointer"
+              onClick={openCreateNewProjectModal}
+            >
+              new project
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );

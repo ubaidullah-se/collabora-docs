@@ -1,32 +1,27 @@
-import { Project,  PrismaClient } from "@prisma/client";
+import { Project } from "@prisma/client";
 import { Response, Request } from "express";
-import { ServerStatusCode, UserRequest, } from "../models";
+import { ServerStatusCode, UserRequest } from "../types";
+import prisma from "../services/prisma.service";
 
 export const createProject = async (req: UserRequest, res: Response) => {
   const data: Project = req.body;
 
-  const userId = req.user.id
+  const userId = req.user.id;
 
-
-
-  const prismaClient = new PrismaClient();
-
-  const project = await prismaClient.project.create({
+  const project = await prisma.project.create({
     data: {
       ...data,
-      userId: userId
+      userId: userId,
     },
   });
 
   return res.json({
     data: project,
-    status: ServerStatusCode
+    status: ServerStatusCode,
   });
 };
 
-export const getProject = async (req:Request, res: Response) => {
-  const prismaClient = new PrismaClient();
-
+export const getProject = async (req: Request, res: Response) => {
   const projectId: string = req.params.id;
 
   if (!projectId) {
@@ -36,51 +31,54 @@ export const getProject = async (req:Request, res: Response) => {
     };
   }
 
-  const project: Project = await prismaClient.project.findFirst({
-    where :{
+  const project: Project = await prisma.project.findFirst({
+    where: {
       id: parseInt(projectId),
     },
-    include:{
-      Document: true
-    }
+    include: {
+      Document: true,
+    },
   });
 
   return res.json({
-    data: {
-      project: project,
-      status: ServerStatusCode.SUCCESS,
-    },
+    data: project,
+    status: ServerStatusCode.SUCCESS,
   });
 };
 
-
 export const getAllProjects = async (req: UserRequest, res: Response) => {
-  const prismaClient = new PrismaClient();
-
   const userId = req.user.id;
 
-  if (!userId) {
-    return {
-      data: null,
-      status: ServerStatusCode.BAD_REQUEST,
-    };
-  }
+  const collaborators = await prisma.collaborator.findMany({
+    select: { documentId: true },
+    where: { userId: userId },
+  });
 
-  const getAllProjects = await prismaClient.project.findMany({
+  const documentIds = collaborators.map((item) => item.documentId);
+
+  const documents = await prisma.document.findMany({
     where: {
-      userId: userId
+      id: { in: documentIds },
     },
+    select: { projectId: true },
+  });
+
+  const projectIds = documents.map((item) => item.projectId);
+
+  const projects = await prisma.project.findMany({
+    where: {
+      OR: [{ id: { in: projectIds } }, { userId }],
+    },
+    orderBy: { createdAt: "asc" },
   });
 
   return res.json({
-    allProjects: getAllProjects,
+    data: projects,
     status: ServerStatusCode.SUCCESS,
   });
 };
 
 export const deleteProject = async (req: Request, res: Response) => {
-  const prismaClient = new PrismaClient();
-
   const projectId = req.params.id;
 
   if (!projectId) {
@@ -91,13 +89,13 @@ export const deleteProject = async (req: Request, res: Response) => {
     });
   }
 
-  const deltedProject = await prismaClient.project.delete({
+  await prisma.project.delete({
     where: {
       id: parseInt(projectId),
     },
   });
 
-  res.json({
+  return res.json({
     data: null,
     message: "Deleted Successfully",
     status: ServerStatusCode.SUCCESS,
@@ -105,7 +103,6 @@ export const deleteProject = async (req: Request, res: Response) => {
 };
 
 export const udpateProject = async (req: Request, res: Response) => {
-  const prismaClient = new PrismaClient();
   const data: Project = req.body;
 
   const projectId = req.params.id;
@@ -118,11 +115,11 @@ export const udpateProject = async (req: Request, res: Response) => {
     });
   }
 
-  const udpatedProject = await prismaClient.project.update({
-    where:{
-        id: parseInt(projectId)
+  const udpatedProject = await prisma.project.update({
+    where: {
+      id: parseInt(projectId),
     },
-    data:data
+    data: data,
   });
 
   return udpatedProject;

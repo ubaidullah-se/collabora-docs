@@ -35,6 +35,7 @@ type Project = {
 type DocumentItem = {
   id: number;
   name: string;
+  autoSaveContent: string;
   projectId: number;
   project?: Project;
   createdAt: string;

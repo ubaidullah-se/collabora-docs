@@ -10,7 +10,7 @@ class ApiService {
   private async fetch<T = any>(
     endpoint: string,
     { method = "GET", headers, body, auth }: APIRequestOptions = {}
-  ): Promise<{ status: number; data: T; ok: boolean }> {
+  ): Promise<{ status: number; data: T; ok: boolean, message: any }> {
     const options: RequestInit = {
       method,
     };
@@ -42,8 +42,8 @@ class ApiService {
     const response = await fetch(this.baseUrl + endpoint, options);
     const { status, ok } = response;
 
-    const { data } = await response.json();
-    return { ok, status, data };
+    const { data, message } = await response.json();
+    return { ok, status, data, message };
   }
 
   async login(data: LoginRequest) {
@@ -55,7 +55,7 @@ class ApiService {
   }
 
   async registerUser(data: RegisterUserRequest) {
-    const response = await this.fetch("/v1/user/me", {
+    const response = await this.fetch("/v1/user/register", {
       method: "POST",
       body: data,
     });
@@ -63,20 +63,10 @@ class ApiService {
   }
 
   async getUserDetails() {
-    const response = await this.fetch("/v1/user/details", {
-      auth: true,
-      method: "POST",
-    });
-
-    return response;
-  }
-
-  async createProject(data: CreateProjectRequest) {
-    const response = await this.fetch("/v1/project/create", {
-      method: "POST",
-      body: data,
+    const response = await this.fetch("/v1/user/me", {
       auth: true,
     });
+
     return response;
   }
 
@@ -94,8 +84,8 @@ class ApiService {
     return response;
   }
 
-  async createDocument(data: CreateDocumentRequest) {
-    const response = await this.fetch("/v1/document/create", {
+  async createProject(data: CreateProjectRequest) {
+    const response = await this.fetch("/v1/project", {
       method: "POST",
       body: data,
       auth: true,
@@ -112,6 +102,15 @@ class ApiService {
 
   async getDocument(id: number) {
     const response = await this.fetch(`/v1/document/${id}`, {
+      auth: true,
+    });
+    return response;
+  }
+
+  async createDocument(data: CreateDocumentRequest) {
+    const response = await this.fetch("/v1/document", {
+      method: "POST",
+      body: data,
       auth: true,
     });
     return response;

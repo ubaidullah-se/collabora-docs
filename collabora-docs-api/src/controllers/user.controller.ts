@@ -1,30 +1,21 @@
-import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import bcryptjs from "bcryptjs";
-import {
-  ResponseData,
-  ServerStatusCode,
-  UserDto,
-  UserMeResponse,
-  UserRequest,
-} from "../models";
-import { PrismaClient, User } from "@prisma/client";
-import { emitWarning } from "process";
+import prisma from "../services/prisma.service";
+import { Request, Response } from "express";
+import { ServerStatusCode, UserDto, UserRequest } from "../types";
 
-export const getMe = async (req: Request, res: Response) => {
-  const prismaClient = new PrismaClient();
+export const register = async (req: Request, res: Response) => {
   const userDto = req.body as UserDto;
 
-  const prevUser = await prismaClient.user.findUnique({
+  const prevUser = await prisma.user.findUnique({
     where: {
       email: userDto.email,
     },
   });
 
   if (prevUser) {
-    return res.json({
-      data: null,
-      message: "User already exist",
+    return res.status(ServerStatusCode.BAD_REQUEST).json({
+      message: { email: "email already exist" },
       status: ServerStatusCode.BAD_REQUEST,
     });
   }
@@ -32,7 +23,7 @@ export const getMe = async (req: Request, res: Response) => {
   const salt = await bcryptjs.genSalt(10);
   const secPass = await bcryptjs.hash(userDto.password, salt);
 
-  const user = await prismaClient.user.create({
+  const user = await prisma.user.create({
     data: {
       ...userDto,
       password: secPass,
@@ -45,35 +36,35 @@ export const getMe = async (req: Request, res: Response) => {
     },
   };
 
-  const token = await jwt.sign(payload, process.env.JWT_SECRET_KEY);
-  res.json({
+  const token = jwt.sign(payload, process.env.JWT_SECRET_KEY);
+  return res.json({
     data: {
       accessToken: token,
       user: user,
     },
     status: ServerStatusCode.SUCCESS,
   });
-
-  // return {
-  //   data: {
-  //     accessToken: token,
-  //     user: user,
-  //   },
-  //   status: ServerStatusCode.SUCCESS,
-  // };
 };
 
 export const loginUser = async (req: UserRequest, res: Response) => {
   try {
-    const prismaClient = new PrismaClient();
+    const { email, password } = req.body;
 
-    const { email } = req.body;
-
-    const user = await prismaClient.user.findUnique({
+    const user = await prisma.user.findUnique({
       where: {
         email: email,
       },
     });
+
+    const isCorrectPassword = await bcryptjs.compare(password, user.password);
+
+    if (!isCorrectPassword) {
+      return res.status(ServerStatusCode.BAD_REQUEST).json({
+        data: null,
+        message: { password: "wrong email or password" },
+        status: ServerStatusCode.BAD_REQUEST,
+      });
+    }
 
     const payload = {
       user: {
@@ -81,7 +72,7 @@ export const loginUser = async (req: UserRequest, res: Response) => {
       },
     };
 
-    const token = await jwt.sign(payload, process.env.JWT_SECRET_KEY);
+    const token = jwt.sign(payload, process.env.JWT_SECRET_KEY);
 
     return res.json({
       data: {
@@ -100,31 +91,12 @@ export const loginUser = async (req: UserRequest, res: Response) => {
 };
 
 export const getUser = async (req: UserRequest, res: Response) => {
-  const prismaClient = new PrismaClient();
   const userId = req.user.id;
 
-  const user = await prismaClient.user.findFirst({
-    where: {
-      id: userId,
-    },
-  });
+  const user = await prisma.user.findFirst({ where: { id: userId } });
 
   return res.json({
     data: user,
-    status: ServerStatusCode.SUCCESS,
-  });
-};
-
-export const getAll = async (req: UserRequest, res: Response) => {
-  const prismaClient = new PrismaClient();
-  const userId = req.user.id;
-
-  const allusers = await prismaClient.user.findMany();
-
-  return res.json({
-    data: {
-      allusers,
-    },
     status: ServerStatusCode.SUCCESS,
   });
 };

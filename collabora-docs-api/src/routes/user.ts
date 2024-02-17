@@ -1,11 +1,11 @@
-import express from "express"
-const router = express.Router()
-import {getMe, getUser, loginUser} from "../controllers/user.controller"
-import { fetchuser } from "../middleware/fetchUser"
+import express from "express";
+import { register, getUser, loginUser } from "../controllers/user.controller";
+import { fetchUser } from "../middleware/fetch-user";
 
-router.post("/me", getMe)
-router.post("/details", fetchuser, getUser)
-router.post("/login", loginUser)
+const router = express.Router();
 
+router.post("/register", register);
+router.post("/login", loginUser);
+router.get("/me", fetchUser, getUser);
 
-module.exports =  router
+module.exports = router;

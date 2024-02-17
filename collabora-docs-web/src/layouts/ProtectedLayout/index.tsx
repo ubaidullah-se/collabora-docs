@@ -25,7 +25,6 @@ export default function ProtectedLayout({
   useEffect(() => {
     dispatch(startLoading());
     if (accessToken) {
-      console.log(user);
       if (!user.id) {
         apiService.getUserDetails().then((res) => {
           dispatch(stopLoading());

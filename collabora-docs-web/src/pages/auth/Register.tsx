@@ -25,16 +25,15 @@ export default function Register() {
 
     dispatch(stopLoading());
 
-    const { accessToken, user } = response.data;
-
     if (response.ok) {
+      const { accessToken, user } = response.data;
       dispatch(updateAccessToken(accessToken));
       dispatch(updateUser(user));
 
       navigate("/dashboard", { replace: true });
     } else if (response.status == 400) {
       dispatch(stopLoading());
-      formik.setErrors(response.data.message);
+      formik.setErrors(response.message);
     }
   };
 
@@ -139,9 +138,7 @@ export default function Register() {
             <div className="flex justify-between mx-2 my-10">
               <div className="flex gap-x-2 mt-2 px-2">
                 <span className="font-jaldi underline text-sm ">
-                  <Link to="/auth/login">
-                    Already have account? Login.
-                  </Link>
+                  <Link to="/auth/login">Already have account? Login.</Link>
                 </span>
               </div>
 

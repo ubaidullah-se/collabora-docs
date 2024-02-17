@@ -4,20 +4,26 @@ import { Link, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import swalService from "../services/swal-service";
 import apiService from "../services/api-service";
+import toast from "react-hot-toast";
 
 export default function Project() {
+  const [projectDetails, setProjectDetails] = useState<Project>();
   const [documents, setDocuments] = useState<DocumentItem[]>([]);
   const params = useParams();
   const projectId = parseInt(params.projectId ?? "");
 
+  const fetchAllDocuments = async () => {
+    const { data: documents } = await apiService.getAllDocuments();
+    setDocuments(
+      documents.filter((item: DocumentItem) => item.projectId == projectId)
+    );
+  };
+
   useEffect(() => {
-    apiService.getAllDocuments().then((response) => {
-      setDocuments(
-        response.data.filter(
-          (item: DocumentItem) => item.projectId == projectId
-        )
-      );
-    });
+    apiService
+      .getProject(projectId)
+      .then((response) => setProjectDetails(response.data));
+    fetchAllDocuments();
   }, []);
 
   const openCreateNewDocumentModal = () => {
@@ -37,18 +43,25 @@ export default function Project() {
         },
       })
       .then(({ value }: SweetAlertResult<any>) => {
-        apiService.createDocument({
-          name: value,
-          autoSaveContent: "",
-          projectId,
-        });
+        apiService
+          .createDocument({
+            name: value,
+            autoSaveContent: "",
+            projectId,
+          })
+          .then((response) => {
+            if (response.ok) {
+              toast.success("New document created.");
+              fetchAllDocuments();
+            }
+          });
       });
   };
 
   return (
     <div className="h-screen p-10 container m-auto max-w-[1000px]">
       <div className="flex justify-between p-6 pt-0">
-        <h1 className="text-xl">Documents</h1>
+        <h1 className="text-xl">{projectDetails?.name}</h1>
         <span
           onClick={openCreateNewDocumentModal}
           className="bg-black text-white px-4 py-1.5 rounded cursor-pointer"
@@ -58,11 +71,23 @@ export default function Project() {
       </div>
 
       <div className="flex flex-wrap gap-y-4">
-        {documents.map((item, index) => (
-          <Link key={index} to={`/document/${item.id}`} className="w-1/4">
-            <Document key={index} name={item.name} />
-          </Link>
-        ))}
+        {documents.length > 0 ? (
+          documents.map((item, index) => (
+            <Link key={index} to={`/document/${item.id}`} className="w-1/4">
+              <Document key={index} name={item.name} />
+            </Link>
+          ))
+        ) : (
+          <div className="w-full min-h-[300px] flex items-center justify-center">
+            No documents in this project. Create a
+            <span
+              className="underline text-orange-400 pl-1.5 cursor-pointer"
+              onClick={openCreateNewDocumentModal}
+            >
+              new document
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );

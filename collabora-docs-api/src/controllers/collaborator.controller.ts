@@ -1,23 +1,20 @@
-import { Collaborator,   PrismaClient } from "@prisma/client";
+import { Collaborator } from "@prisma/client";
 import { Response, Request } from "express";
-import { ServerStatusCode, UserRequest } from "../models";
+import { ServerStatusCode } from "../types";
+import prisma from "../services/prisma.service";
 
 export const createCollaborator = async (req: Request, res: Response) => {
   const data: Collaborator = req.body;
 
-  const prismaClient = new PrismaClient();
-
-  const collaborator = await prismaClient.collaborator.create({
+  const collaborator = await prisma.collaborator.create({
     data: data,
   });
 
   return collaborator;
 };
 
-export const getCollaborator = async (req:Request, res: Response) => {
-  const prismaClient = new PrismaClient();
-
-  const documentId: string = req.params.id;
+export const getAllCollaborators = async (req: Request, res: Response) => {
+  const documentId = req.query.documentId as string;
 
   if (!documentId) {
     return {
@@ -26,44 +23,19 @@ export const getCollaborator = async (req:Request, res: Response) => {
     };
   }
 
-  const collaborator: Collaborator = await prismaClient.collaborator.findFirst();
-
-  return res.json({
-    data: {
-      document: collaborator,
-      status: ServerStatusCode.SUCCESS,
+  const getAllDocuments = await prisma.collaborator.findMany({
+    where: {
+      documentId: parseInt(documentId),
     },
   });
-};
-
-
-export const getAllCollaborators = async (req: Request, res: Response) => {
-  const prismaClient = new PrismaClient();
-
-  const documentId: string = req.params.documentId;
-
-  if (!documentId) {
-    return {
-      data: null,
-      status: ServerStatusCode.BAD_REQUEST,
-    };
-  }
-
-  const getAllDocuments = await prismaClient.collaborator.findMany({
-    where: {
-      documentId: parseInt(documentId)
-    }
-  });
 
   return res.json({
-    allDocuments: getAllDocuments,
+    data: getAllDocuments,
     status: ServerStatusCode.SUCCESS,
   });
 };
 
 export const deleteCollaborator = async (req: Request, res: Response) => {
-  const prismaClient = new PrismaClient();
-
   const collaboratorId = req.params.id;
 
   if (!collaboratorId) {
@@ -74,16 +46,15 @@ export const deleteCollaborator = async (req: Request, res: Response) => {
     });
   }
 
-  const deltedCollaborator = await prismaClient.collaborator.delete({
+  await prisma.collaborator.delete({
     where: {
       id: parseInt(collaboratorId),
     },
   });
 
-  res.json({
+  return res.json({
     data: null,
     message: "Deleted Successfully",
     status: ServerStatusCode.SUCCESS,
   });
 };
-

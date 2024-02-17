@@ -8,76 +8,58 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteCollaborator = exports.getAllCollaborators = exports.getDocument = exports.createCollaborator = void 0;
-const client_1 = require("@prisma/client");
-const models_1 = require("../models");
+exports.deleteCollaborator = exports.getAllCollaborators = exports.createCollaborator = void 0;
+const types_1 = require("../types");
+const prisma_service_1 = __importDefault(require("../services/prisma.service"));
 const createCollaborator = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const data = req.body;
-    const prismaClient = new client_1.PrismaClient();
-    const collaborator = yield prismaClient.collaborator.create({
+    const collaborator = yield prisma_service_1.default.collaborator.create({
         data: data,
     });
     return collaborator;
 });
 exports.createCollaborator = createCollaborator;
-const getDocument = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const prismaClient = new client_1.PrismaClient();
-    const documentId = req.params.id;
-    if (!documentId) {
-        return {
-            data: null,
-            status: models_1.ServerStatusCode.BAD_REQUEST,
-        };
-    }
-    const collaborator = yield prismaClient.collaborator.findFirst();
-    return res.json({
-        data: {
-            document: collaborator,
-            status: models_1.ServerStatusCode.SUCCESS,
-        },
-    });
-});
-exports.getDocument = getDocument;
 const getAllCollaborators = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const prismaClient = new client_1.PrismaClient();
-    const documentId = req.params.documentId;
+    const documentId = req.query.documentId;
     if (!documentId) {
         return {
             data: null,
-            status: models_1.ServerStatusCode.BAD_REQUEST,
+            status: types_1.ServerStatusCode.BAD_REQUEST,
         };
     }
-    const getAllDocuments = prismaClient.collaborator.findMany({
+    const getAllDocuments = yield prisma_service_1.default.collaborator.findMany({
         where: {
-            documentId: parseInt(documentId)
-        }
+            documentId: parseInt(documentId),
+        },
     });
     return res.json({
         allDocuments: getAllDocuments,
-        status: models_1.ServerStatusCode.SUCCESS,
+        status: types_1.ServerStatusCode.SUCCESS,
     });
 });
 exports.getAllCollaborators = getAllCollaborators;
 const deleteCollaborator = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const prismaClient = new client_1.PrismaClient();
     const collaboratorId = req.params.id;
     if (!collaboratorId) {
         return res.json({
             data: null,
-            status: models_1.ServerStatusCode.BAD_REQUEST,
+            status: types_1.ServerStatusCode.BAD_REQUEST,
             message: "CollaboratorId is note provided",
         });
     }
-    const deltedCollaborator = yield prismaClient.collaborator.delete({
+    yield prisma_service_1.default.collaborator.delete({
         where: {
             id: parseInt(collaboratorId),
         },
     });
-    res.json({
+    return res.json({
         data: null,
         message: "Deleted Successfully",
-        status: models_1.ServerStatusCode.SUCCESS,
+        status: types_1.ServerStatusCode.SUCCESS,
     });
 });
 exports.deleteCollaborator = deleteCollaborator;

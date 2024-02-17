@@ -9,7 +9,7 @@ import { ReduxStoreState } from "../../redux/store";
 import { startLoading, stopLoading } from "../../redux/slices/loading-slice";
 import { updateUser } from "../../redux/slices/user-slice";
 import apiService from "../../services/api-service";
-import toast from "react-hot-toast";
+
 import * as Yup from "yup";
 
 export default function Login() {
@@ -23,20 +23,18 @@ export default function Login() {
   const handleSubmit = async (values: LoginRequest) => {
     dispatch(startLoading());
     const response = await apiService.login(values);
-    console.log(response)
 
     dispatch(stopLoading());
 
-    const { accessToken, user } = response.data;
-
-    dispatch(stopLoading());
+    
     if (response.ok) {
+      const { accessToken, user } = response.data;
       dispatch(updateAccessToken(accessToken));
       dispatch(updateUser(user));
 
       navigate("/dashboard", { replace: true });
-    } else if (response.status == 401) {
-      toast.error("Not Authorized");
+    } else if (response.status >= 400) {
+      formik.setErrors(response.message)
     }
   };
 
@@ -60,7 +58,7 @@ export default function Login() {
         dispatch(stopLoading());
         if (res.data.email) {
           dispatch(updateUser(res.data));
-          navigate("/dashboard")
+          navigate("/dashboard");
         }
       });
     }

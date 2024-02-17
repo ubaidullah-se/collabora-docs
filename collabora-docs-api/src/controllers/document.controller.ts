@@ -1,26 +1,24 @@
-import { Document, DocumentVersion, PrismaClient } from "@prisma/client";
+import { Document, DocumentVersion } from "@prisma/client";
 import { Response, Request } from "express";
-import { ServerStatusCode, UserRequest } from "../models";
-import { updateDocumentById } from "../utils/document";
+import { ServerStatusCode, UserRequest } from "../types";
+import prisma from "../services/prisma.service";
 
 export const createDocument = async (req: UserRequest, res: Response) => {
   const data: Document = req.body;
 
-  const prismaClient = new PrismaClient();
+  const userId = req.user.id;
 
-  const userId = req.user.id
-
-  const document = await prismaClient.document.create({
+  const document = await prisma.document.create({
     data: data,
   });
 
-  await prismaClient.collaborator.create({
-    data:{
+  await prisma.collaborator.create({
+    data: {
       permission: "EDIT",
       documentId: document.id,
-      userId: userId
-    }
-  })
+      userId: userId,
+    },
+  });
 
   return res.json({
     data: document,
@@ -29,8 +27,6 @@ export const createDocument = async (req: UserRequest, res: Response) => {
 };
 
 export const getDocument = async (req: Request, res: Response) => {
-  const prismaClient = new PrismaClient();
-
   const documentId: string = req.params.id;
 
   if (!documentId) {
@@ -40,71 +36,39 @@ export const getDocument = async (req: Request, res: Response) => {
     };
   }
 
-  const document: Document = await prismaClient.document.findFirst();
+  const document: Document = await prisma.document.findFirst();
 
   return res.json({
-    data: {
-      document: document,
-      status: ServerStatusCode.SUCCESS,
-    },
-  });
-};
-
-export const getLatestDocument = async (req: Request, res: Response) => {
-  const prismaClient = new PrismaClient();
-
-  const documentId: string = req.params.id;
-
-  if (!documentId) {
-    return {
-      data: null,
-      status: ServerStatusCode.BAD_REQUEST,
-    };
-  }
-
-  const document = await prismaClient.documentVersion.findFirst({
-    where: {
-      documentId: parseInt(documentId),
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
-
-  return res.json({
-    data: {
-      document: document,
-      status: ServerStatusCode.SUCCESS,
-    },
+    data: document,
+    status: ServerStatusCode.SUCCESS,
   });
 };
 
 export const getAllDocuments = async (req: UserRequest, res: Response) => {
-  const prismaClient = new PrismaClient();
+  const userId = req.user.id;
 
-  const userId = req.user.id
+  const collaborators = await prisma.collaborator.findMany({
+    select: { documentId: true },
+    where: { userId: userId },
+  });
 
-  const documentIds = (
-    await prismaClient.collaborator.findMany({ where: { userId: userId } })
-  ).map((item) => item.documentId);
+  const documentIds = collaborators.map((item) => item.documentId);
 
-  const getAllDocuments = await prismaClient.document.findMany({
+  const getAllDocuments = await prisma.document.findMany({
     where: {
       id: { in: documentIds },
-
     },
-    include: {project: {select: {name: true}}}
+    orderBy: { createdAt: "asc" },
+    include: { project: { select: { name: true } } },
   });
 
   return res.json({
-    allDocuments: getAllDocuments,
+    data: getAllDocuments,
     status: ServerStatusCode.SUCCESS,
   });
 };
 
 export const deleteDocument = async (req: Request, res: Response) => {
-  const prismaClient = new PrismaClient();
-
   const documentId = req.params.id;
 
   if (!documentId) {
@@ -115,13 +79,13 @@ export const deleteDocument = async (req: Request, res: Response) => {
     });
   }
 
-  const deltedDocument = await prismaClient.document.delete({
+  const deltedDocument = await prisma.document.delete({
     where: {
       id: parseInt(documentId),
     },
   });
 
-  res.json({
+  return res.json({
     data: null,
     message: "Deleted Successfully",
     status: ServerStatusCode.SUCCESS,
@@ -129,7 +93,6 @@ export const deleteDocument = async (req: Request, res: Response) => {
 };
 
 export const updateDocument = async (req: Request, res: Response) => {
-  const prismaClient = new PrismaClient();
   const data: DocumentVersion = req.body;
 
   const documentId = req.params.id;
@@ -142,7 +105,7 @@ export const updateDocument = async (req: Request, res: Response) => {
     });
   }
 
-  const updatedDocumentVersion = await prismaClient.documentVersion.create({
+  const updatedDocumentVersion = await prisma.documentVersion.create({
     data: {
       publishedContent: data.publishedContent,
       documentId: data.documentId,

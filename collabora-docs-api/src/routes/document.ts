@@ -1,14 +1,19 @@
-import express from "express"
-const router = express.Router()
-import { fetchuser } from "../middleware/fetchUser"
-import { createDocument, deleteDocument, getAllDocuments, getDocument, getLatestDocument, updateDocument } from "../controllers/document.controller"
+import express from "express";
+import { fetchUser } from "../middleware/fetch-user";
+import {
+  createDocument,
+  deleteDocument,
+  getAllDocuments,
+  getDocument,
+  updateDocument,
+} from "../controllers/document.controller";
 
-router.post("/create", fetchuser, createDocument)
-router.get("/:id", fetchuser, getDocument)
-router.get("/:id", fetchuser,getLatestDocument )
-router.get("", fetchuser,getAllDocuments )
-router.delete("/:id", fetchuser,  deleteDocument)
-router.put("/:id", fetchuser,  updateDocument)
+const router = express.Router();
 
+router.get("", fetchUser, getAllDocuments);
+router.post("", fetchUser, createDocument);
+router.get("/:id", fetchUser, getDocument);
+router.delete("/:id", fetchUser, deleteDocument);
+router.put("/:id", fetchUser, updateDocument);
 
-module.exports =  router
+module.exports = router;
