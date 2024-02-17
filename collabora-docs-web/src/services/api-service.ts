@@ -24,10 +24,10 @@ class ApiService {
     }
 
     if (auth) {
-      const tokens = JSON.parse(localStorage.getItem("tokens") ?? "null");
+      const accessToken = localStorage.getItem("access-token");
       headers = {
         ...headers,
-        Authorization: `Bearer ${tokens?.accessToken}`,
+        Authorization: accessToken,
       };
     }
 
@@ -42,12 +42,12 @@ class ApiService {
     const response = await fetch(this.baseUrl + endpoint, options);
     const { status, ok } = response;
 
-    const data = await response.json();
+    const { data } = await response.json();
     return { ok, status, data };
   }
 
   async login(data: LoginRequest) {
-    const response = await this.fetch("/v1/auth/login", {
+    const response = await this.fetch("/v1/user/login", {
       method: "POST",
       body: data,
     });
@@ -55,7 +55,7 @@ class ApiService {
   }
 
   async registerUser(data: RegisterUserRequest) {
-    const response = await this.fetch("/v1/auth/register", {
+    const response = await this.fetch("/v1/user/me", {
       method: "POST",
       body: data,
     });
@@ -63,7 +63,55 @@ class ApiService {
   }
 
   async getUserDetails() {
-    const response = await this.fetch("/v1/user", {
+    const response = await this.fetch("/v1/user/details", {
+      auth: true,
+      method: "POST",
+    });
+
+    return response;
+  }
+
+  async createProject(data: CreateProjectRequest) {
+    const response = await this.fetch("/v1/project/create", {
+      method: "POST",
+      body: data,
+      auth: true,
+    });
+    return response;
+  }
+
+  async getAllProjects() {
+    const response = await this.fetch("/v1/project", {
+      auth: true,
+    });
+    return response;
+  }
+
+  async getProject(id: number) {
+    const response = await this.fetch(`/v1/project/${id}`, {
+      auth: true,
+    });
+    return response;
+  }
+
+  async createDocument(data: CreateDocumentRequest) {
+    const response = await this.fetch("/v1/document/create", {
+      method: "POST",
+      body: data,
+      auth: true,
+    });
+    return response;
+  }
+
+  async getAllDocuments() {
+    const response = await this.fetch("/v1/document", {
+      auth: true,
+    });
+    return response;
+  }
+
+  async getDocument(id: number) {
+    const response = await this.fetch(`/v1/document/${id}`, {
       auth: true,
     });
     return response;

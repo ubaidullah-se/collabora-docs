@@ -48,12 +48,16 @@ io.on("connection", (socket) => {
     // Add user to
     socket.on("editDoc", (data) => __awaiter(void 0, void 0, void 0, function* () {
         const { content, documentId, room, collboartorId } = data;
-        const hasAccess = yield (0, collaborator_1.isCollaboratorHasAccess)(collboartorId);
-        console.log("hasAccess: ", hasAccess);
+        const user = yield (0, collaborator_1.resolveCollboartor)(collboartorId);
+        if (user) {
+            socket.to(room).emit("editedDoc", {});
+        }
     }));
 });
 app.use(express_1.default.json());
-app.use((0, cors_1.default)());
+app.use((0, cors_1.default)({
+    origin: "*"
+}));
 app.use(`${process.env.API_VERSION}/user`, require("./routes/user"));
-server.listen(process.env.PORT);
+server.listen(3000);
 //# sourceMappingURL=index.js.map

@@ -23,18 +23,19 @@ export default function Login() {
   const handleSubmit = async (values: LoginRequest) => {
     dispatch(startLoading());
     const response = await apiService.login(values);
+    console.log(response)
 
     dispatch(stopLoading());
 
     const { accessToken, user } = response.data;
 
+    dispatch(stopLoading());
     if (response.ok) {
       dispatch(updateAccessToken(accessToken));
       dispatch(updateUser(user));
 
       navigate("/dashboard", { replace: true });
     } else if (response.status == 401) {
-      dispatch(stopLoading());
       toast.error("Not Authorized");
     }
   };
@@ -59,6 +60,7 @@ export default function Login() {
         dispatch(stopLoading());
         if (res.data.email) {
           dispatch(updateUser(res.data));
+          navigate("/dashboard")
         }
       });
     }

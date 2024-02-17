@@ -1,9 +1,10 @@
 import {Request, Response, NextFunction} from "express"
 import jwt from "jsonwebtoken"
+import { ServerStatusCode } from "../models";
 
 
 export const fetchuser = (req: Request, res: Response, next: NextFunction) => {
-    const token = req.header('auth-token');
+    const token = req.header('authorization');
     if (!token) {
         res.status(401).send({ error: "Please authenticate using a valid token" })
     }
@@ -12,7 +13,7 @@ export const fetchuser = (req: Request, res: Response, next: NextFunction) => {
         req["user"] = data.user;
         next();
     } catch (error) {
-        res.status(401).send({ error: "Please authenticate using a valid token" })
+        res.status(ServerStatusCode.UNAUTHORIZED).send({ error: "Please authenticate using a valid token" })
     }
 
 }

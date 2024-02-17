@@ -12,7 +12,7 @@ export default function App() {
         ))}
       </Route>
 
-      <Route element={<AuthLayout />}>
+      <Route element={<ProtectedLayout />}>
         {protectedRoutes.map((item, index) => (
           <Route key={index} path={item.path} element={<item.element />} />
         ))}

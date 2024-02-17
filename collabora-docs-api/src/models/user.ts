@@ -1,8 +1,9 @@
 import { Request } from "express";
+import { ServerResponse } from "./server";
 
 export interface UserMeResponse {
-  accessToken: string;
-  user: Partial<UserDto>;
+  accessToken?: string;
+  user?: Partial<UserDto>;
 }
 
 export interface UserRequest extends Request {

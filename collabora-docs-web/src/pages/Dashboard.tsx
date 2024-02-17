@@ -1,69 +1,66 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Folder } from "../components";
+import { SweetAlertResult } from "sweetalert2";
+import swalService from "../services/swal-service";
+import apiService from "../services/api-service";
 
 export default function Dashboard() {
-  const projects: Project[] = [
-    {
-      id: 1,
-      name: "Test",
-      createdAt: new Date().toString(),
-      userId: 0,
-      updatedAt: new Date().toString(),
-    },
-    {
-      id: 1,
-      name: "Test",
-      createdAt: new Date().toString(),
-      userId: 0,
-      updatedAt: new Date().toString(),
-    },
-    {
-      id: 1,
-      name: "Test",
-      createdAt: new Date().toString(),
-      userId: 0,
-      updatedAt: new Date().toString(),
-    },
-    {
-      id: 1,
-      name: "Test",
-      createdAt: new Date().toString(),
-      userId: 0,
-      updatedAt: new Date().toString(),
-    },
-    {
-      id: 1,
-      name: "Test",
-      createdAt: new Date().toString(),
-      userId: 0,
-      updatedAt: new Date().toString(),
-    },
-    {
-      id: 1,
-      name: "Test",
-      createdAt: new Date().toString(),
-      userId: 0,
-      updatedAt: new Date().toString(),
-    },
-    {
-      id: 1,
-      name: "Test",
-      createdAt: new Date().toString(),
-      userId: 0,
-      updatedAt: new Date().toString(),
-    },
-  ];
+  const [projects, setProjects] = useState<Project[]>([]);
+
+  const fetchAllProjects = async () => {
+    const { data: projects } = await apiService.getAllProjects();
+    const { data: documents } = await apiService.getAllDocuments();
+
+    setProjects([
+      ...projects,
+      ...documents.map((item: DocumentItem) => ({
+        name: item.project?.name,
+        id: item.projectId,
+      })),
+    ]);
+  };
+
+  useEffect(() => {
+    fetchAllProjects();
+  }, []);
+
+  const openCreateNewProjectModal = () => {
+    swalService
+      .fire({
+        input: "text",
+        title: "Create Project",
+        inputLabel: "Project Name",
+        customClass: {
+          actions: "justify-end pr-8 w-full",
+          input: "rounded border border-[#b6b6b6] !ring-0 !outline-none",
+        },
+        inputValidator: (value) => {
+          if (!value) {
+            return "Project name can't be empty";
+          }
+        },
+      })
+      .then(({ value }: SweetAlertResult<any>) => {
+        apiService.createProject({ name: value });
+      });
+  };
 
   return (
     <div className="h-screen p-10 container m-auto max-w-[1000px]">
       <div className="flex justify-between p-6 pt-0">
         <h1 className="text-xl">Projects</h1>
-        <span className="bg-black text-white px-4 py-1.5 rounded cursor-pointer">+ New</span>
+        <span
+          onClick={openCreateNewProjectModal}
+          className="bg-black text-white px-4 py-1.5 rounded cursor-pointer"
+        >
+          + New
+        </span>
       </div>
 
       <div className="flex flex-wrap gap-y-4">
-        {projects.map((item) => (
-          <Link to={`/project/${item.id}`} className="w-1/4">
+        {projects.map((item, index) => (
+          <Link key={index} to={`/project/${item.id}`} className="w-1/4">
             <Folder name={item.name} />
           </Link>
         ))}

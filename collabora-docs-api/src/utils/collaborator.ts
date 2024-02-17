@@ -1,9 +1,8 @@
-import { Permission, PrismaClient } from "@prisma/client";
-import { User } from "../models";
+import { Permission, PrismaClient, User } from "@prisma/client";
 
 export const resolveCollboartor = async (id: number): Promise<User | null> => {
   const prismaClient = new PrismaClient();
-  const collaborator = await prismaClient.collaborator.findUnique({
+  const collaborator = await prismaClient.collaborator.findFirst({
     where: {
       id: id,
     },

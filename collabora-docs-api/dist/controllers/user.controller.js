@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.loginUser = exports.getMe = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
+const models_1 = require("../models");
 const client_1 = require("@prisma/client");
 const getMe = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const prismaClient = new client_1.PrismaClient();
@@ -22,17 +23,25 @@ const getMe = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const salt = yield bcryptjs_1.default.genSalt(10);
     const secPass = yield bcryptjs_1.default.hash(userDto.password, salt);
     const user = yield prismaClient.user.create({
-        data: Object.assign(Object.assign({}, userDto), { password: secPass })
+        data: Object.assign(Object.assign({}, userDto), { password: secPass }),
     });
     const payload = {
         user: {
-            id: user.id
-        }
+            id: user.id,
+        },
     };
     const token = yield jsonwebtoken_1.default.sign(payload, process.env.JWT_SECRET_KEY);
+    //   res.json({
+    //     accessToken: token,
+    //     user: user,
+    //     status: ServerStatusCode.SUCCESS,
+    //   });
     return {
-        accessToken: token,
-        user: user
+        data: {
+            accessToken: token,
+            user: user,
+        },
+        status: models_1.ServerStatusCode.SUCCESS,
     };
 });
 exports.getMe = getMe;
@@ -40,25 +49,36 @@ const loginUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const prismaClient = new client_1.PrismaClient();
         const userId = req.user.id;
-        const user = yield prismaClient.user.findUnique({
+        const user = yield prismaClient.user.findFirst({
             where: {
-                id: userId
-            }
+                id: userId,
+            },
         });
         const payload = {
             user: {
-                id: user.id
-            }
+                id: user.id,
+            },
         };
         const token = yield jsonwebtoken_1.default.sign(payload, process.env.JWT_SECRET_KEY);
         return {
-            accessToken: token,
-            user: user
+            data: {
+                accessToken: token,
+                user: user,
+            },
+            status: models_1.ServerStatusCode.SUCCESS,
         };
+        // res.json({
+        //   accessToken: token,
+        //   user: user,
+        //   status: ServerStatusCode.SUCCESS,
+        // });
     }
     catch (error) {
         console.error(error.message);
-        res.status(500).send("Internal Server Error");
+        res.json({
+            data: {},
+            status: models_1.ServerStatusCode.SUCCESS,
+        });
     }
 });
 exports.loginUser = loginUser;

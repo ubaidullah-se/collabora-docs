@@ -9,16 +9,17 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getUserById = void 0;
+exports.updateDocumentById = void 0;
 const client_1 = require("@prisma/client");
-const getUserById = (id) => __awaiter(void 0, void 0, void 0, function* () {
+const updateDocumentById = (documentId, data) => __awaiter(void 0, void 0, void 0, function* () {
     const prismaClient = new client_1.PrismaClient();
-    const user = yield prismaClient.user.findFirst({
+    const updatedDocument = yield prismaClient.document.update({
         where: {
-            id: id
-        }
+            id: parseInt(documentId),
+        },
+        data: data,
     });
-    return user;
+    return updatedDocument;
 });
-exports.getUserById = getUserById;
-//# sourceMappingURL=user.js.map
+exports.updateDocumentById = updateDocumentById;
+//# sourceMappingURL=document.js.map

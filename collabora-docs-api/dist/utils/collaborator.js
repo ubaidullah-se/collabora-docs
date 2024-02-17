@@ -9,21 +9,24 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.isCollaboratorHasAccess = void 0;
+exports.resolveCollboartor = void 0;
 const client_1 = require("@prisma/client");
-const isCollaboratorHasAccess = (id) => __awaiter(void 0, void 0, void 0, function* () {
+const resolveCollboartor = (id) => __awaiter(void 0, void 0, void 0, function* () {
     const prismaClient = new client_1.PrismaClient();
-    const collaborator = yield prismaClient.collaborator.findUnique({
+    const collaborator = yield prismaClient.collaborator.findFirst({
         where: {
-            id: id
-        }
+            id: id,
+        },
+        include: {
+            user: true,
+        },
     });
     if (collaborator.permission == client_1.Permission.EDIT) {
-        return true;
+        return collaborator.user;
     }
     else {
-        return false;
+        return null;
     }
 });
-exports.isCollaboratorHasAccess = isCollaboratorHasAccess;
+exports.resolveCollboartor = resolveCollboartor;
 //# sourceMappingURL=collaborator.js.map
