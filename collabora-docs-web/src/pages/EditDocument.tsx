@@ -191,7 +191,7 @@ export default function EditDocument() {
 
     const handleTextChange = (
       delta: Delta,
-      oldDelta: Delta,
+      // oldDelta: Delta,
       source: string
     ) => {
       if (source !== "user") return;

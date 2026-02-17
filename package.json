@@ -1,5 +1,20 @@
 {
-  "dependencies": {
-    "sweetalert2": "^11.10.5"
+  "name": "web-hackathon-code-bros",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:PUCon-24/web-hackathon-code-bros.git",
+  "author": "Ubaidullah <ubaidmian1234@gmail.com>",
+  "license": "MIT",
+  "private": "true",
+  "scripts": {
+    "start": "concurrently \"yarn workspace collabora-docs-api dev\" \"yarn workspace collabora-docs-web dev\"",
+    "build": "yarn workspace collabora-docs-api build && yarn workspace collabora-docs-web build"
+  },
+  "workspaces": [
+    "collabora-docs-api",
+    "collabora-docs-web"
+  ],
+  "devDependencies": {
+    "concurrently": "^9.2.1"
   }
 }
