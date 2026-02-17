@@ -69,7 +69,7 @@ export default function Register() {
   return (
     <div>
       <Helmet>
-        <title>Register | TheJuan</title>
+        <title>Register | CollaboraDocs</title>
       </Helmet>
 
       <div className="flex flex-col-reverse md:flex-row items-center justify-center w-screen h-navbar-screen">

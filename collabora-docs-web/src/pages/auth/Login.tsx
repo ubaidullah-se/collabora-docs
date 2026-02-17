@@ -67,7 +67,7 @@ export default function Login() {
   return (
     <div>
       <Helmet>
-        <title>Login | TheJuan</title>
+        <title>Login | CollaboraDocs</title>
       </Helmet>
 
       <div className="flex flex-col-reverse md:flex-row items-center justify-center w-screen h-navbar-screen">

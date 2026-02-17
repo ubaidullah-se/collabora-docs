@@ -106,7 +106,7 @@ export default function EditDocument() {
     socketInstance.on("initialize-document", (document: DocumentItem) => {
       try {
         setDocumentDetails(document);
-        const documentContentState = JSON.parse(document.autoSaveContent);
+        const documentContentState = JSON.parse(document.autoSaveContent || "{}");
         const delta = new Delta(documentContentState);
 
         if (
